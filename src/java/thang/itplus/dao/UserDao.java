@@ -101,13 +101,12 @@ public class UserDao extends DBContext {
 
     public User getUserByPhoneAndRole(String phone, User.Role role) {
         User user = null;
-        String cleanedPhone = phone.replaceAll("[^0-9]", ""); 
-        
+        String cleanedPhone = phone.replaceAll("[^0-9]", "");
+
         // SỬ DỤNG REPLACE TRONG SQL (Để khớp với dữ liệu không chuẩn hóa trong CSDL)
         String sql = "SELECT * FROM `users` WHERE REPLACE(REPLACE(phone, ' ', ''), '-', '') = ? AND role=?";
 
-        try (java.sql.Connection connection = getConnection(); 
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (java.sql.Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, cleanedPhone);
             ps.setString(2, role.toString().toLowerCase());
@@ -127,8 +126,7 @@ public class UserDao extends DBContext {
         List<User> customers = new ArrayList<>();
         String sql = "SELECT * FROM `users` WHERE role='customer' AND name LIKE ? ORDER BY name";
 
-        try (java.sql.Connection connection = getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (java.sql.Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, "%" + nameKeyword + "%");
 
@@ -145,6 +143,7 @@ public class UserDao extends DBContext {
         }
         return customers;
     }
+
     public User CheckLogin(String e, String p) {
         User newUser = null;
         String query = "SELECT * FROM `users` WHERE email=? AND password=?";
@@ -304,32 +303,54 @@ public class UserDao extends DBContext {
         }
         return exists;
     }
-    public int getTotalCustomers() {
-    String sql = "SELECT COUNT(*) AS total_customers FROM users WHERE role = 'customer'";
-    int total = 0;
-    
-    // Lưu ý: UserDao extends DBContext, nên dùng getConnection() trực tiếp
-    try (Connection connection = getConnection(); 
-         PreparedStatement ps = connection.prepareStatement(sql); 
-         ResultSet rs = ps.executeQuery()) {
 
-        if (rs.next()) {
-            total = rs.getInt("total_customers");
+    public int getTotalCustomers() {
+        String sql = "SELECT COUNT(*) AS total_customers FROM users WHERE role = 'customer'";
+        int total = 0;
+
+        // Lưu ý: UserDao extends DBContext, nên dùng getConnection() trực tiếp
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                total = rs.getInt("total_customers");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return total;
     }
-    return total;
-}
+
+    public List<User> selectAllUsersByRole(User.Role role) {
+        List<User> users = new ArrayList<>();
+        // SQL lọc theo vai trò và sắp xếp theo ID mới nhất
+        String sql = "SELECT * FROM `users` WHERE role = ? ORDER BY user_id DESC";
+
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, role.toString().toLowerCase());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User user = mapResultSetToUser(rs);
+                    if (user != null) {
+                        users.add(user);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
     public static void main(String[] args) {
         UserDao dao = new UserDao();
-        
+
         System.out.println("--- BẮT ĐẦU TEST TÌM KIẾM KHÁCH HÀNG ---");
 
         // Dữ liệu mẫu (Dựa trên image_5defe5.png):
         // 4 | Phạm Văn Hòa | abc@gmail.com | 0356777779 | Huế | customer
         // 3 | Phạm Dũng    | dung1975@gmail.com | 0812166737 | thái bình | customer
-        
         // 1. TEST QLKH_01: TÌM THEO SĐT (Dữ liệu tồn tại, SĐT chuẩn hóa)
         String testPhone1 = "0356777779";
         System.out.println("\nTEST 1: Tìm kiếm SĐT tồn tại: " + testPhone1);
@@ -339,7 +360,7 @@ public class UserDao extends DBContext {
         } else {
             System.out.println("  ❌ KHÔNG TÌM THẤY (Lỗi CSDL hoặc SĐT không khớp).");
         }
-        
+
         // 2. TEST TÌM THEO SĐT VỚI DẤU CÁCH (Kiểm tra logic .replaceAll("[^0-9]", ""))
         String testPhone2 = "081 216 6737";
         System.out.println("\nTEST 2: Tìm kiếm SĐT có dấu cách: " + testPhone2);
@@ -362,7 +383,7 @@ public class UserDao extends DBContext {
         } else {
             System.out.println("  ❌ KHÔNG TÌM THẤY (Logic LIKE %Keyword% có thể sai).");
         }
-        
+
         // 4. TEST SĐT KHÔNG TỒN TẠI
         String testPhone3 = "0123456789";
         System.out.println("\nTEST 4: Tìm kiếm SĐT không tồn tại: " + testPhone3);

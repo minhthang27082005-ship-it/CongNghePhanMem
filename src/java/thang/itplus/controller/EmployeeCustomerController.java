@@ -1,5 +1,3 @@
-// EmployeeCustomerController.java (PHIÊN BẢN HOÀN CHỈNH)
-
 package thang.itplus.controller;
 
 import jakarta.servlet.ServletException;
@@ -17,11 +15,11 @@ import thang.itplus.models.Order;
 import thang.itplus.models.User;
 import thang.itplus.models.User.Role;
 
-@WebServlet(name = "EmployeeCustomerController", urlPatterns = {"/employee/customers", "/employee/customer-history"})
+@WebServlet(name = "EmployeeCustomerController", urlPatterns = {"/employee/customers", "/employee/customer-history", "/customer-list", "/admin/customer-history"})
 public class EmployeeCustomerController extends HttpServlet {
 
     private final UserDao userDao = new UserDao();
-    private final OrderDao orderDao = new OrderDao(); 
+    private final OrderDao orderDao = new OrderDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -31,121 +29,104 @@ public class EmployeeCustomerController extends HttpServlet {
         User currentUser = (User) session.getAttribute("user");
         String servletPath = request.getServletPath();
 
-        // Kiểm tra phân quyền
-        if (currentUser == null || currentUser.getRole() != Role.EMPLOYEE) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Truy cập bị từ chối.");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
         try {
-            if ("/employee/customers".equals(servletPath)) {
-                
-                String searchType = request.getParameter("searchType");
-                String keyword = request.getParameter("keyword");
-                List<User> customerList = null;
-                
-                // ⭐ BIẾN LƯU TRỮ TRẠNG THÁI CUỐI CÙNG
-                String lastKeyword = (String) session.getAttribute("lastKeyword");
-                String lastSearchType = (String) session.getAttribute("lastSearchType");
-                
-                if (keyword != null && !keyword.trim().isEmpty()) {
-                    // ⭐ TRƯỜNG HỢP 1: THỰC HIỆN TÌM KIẾM MỚI HỢP LỆ
-                    keyword = keyword.trim();
-                    searchType = searchType != null ? searchType : "phone"; 
-                    
-                    // Thực hiện tìm kiếm
-                    if ("phone".equals(searchType)) {
-                        String cleanedKeyword = keyword.replaceAll("\\s+", ""); 
-                        User customer = userDao.getUserByPhoneAndRole(cleanedKeyword, Role.customer);
-                        if (customer != null) {
-                            customerList = List.of(customer);
-                        }
-                    } else if ("name".equals(searchType)) {
-                        customerList = userDao.getCustomersByName(keyword);
-                    }
-                    
-                    // Lưu kết quả vào Session (Flash Attributes)
-                    session.setAttribute("savedCustomerList", customerList);
-                    session.setAttribute("lastSearchType", searchType);
-                    session.setAttribute("lastKeyword", keyword);
-                    
-                    if (customerList == null || customerList.isEmpty()) {
-                        session.setAttribute("warningMessage", "Không tìm thấy khách hàng nào với từ khóa: " + keyword);
-                    } else {
-                        session.removeAttribute("warningMessage");
-                    }
-                    
-                    // CHUYỂN HƯỚNG để làm sạch request parameters
-                    response.sendRedirect(request.getContextPath() + "/employee/customers");
-                    return;
-                    
-                } else {
-                    // ⭐ TRƯỜNG HỢP 2/3: TẢI LẠI TRANG (Sau Redirect, Sidebar, History)
-                    
-                    // Tải lại kết quả tìm kiếm (customerList)
-                    if (session.getAttribute("savedCustomerList") != null) {
-                         customerList = (List<User>) session.getAttribute("savedCustomerList");
-                    }
-                    
-                    // ⭐ Đảm bảo Form luôn hiển thị giá trị cuối cùng đã nhập
-                    if (lastKeyword != null) {
-                        request.setAttribute("currentKeyword", lastKeyword);
-                    }
-                    if (lastSearchType != null) {
-                        request.setAttribute("currentSearchType", lastSearchType);
-                    }
-                    
-                    // Chuyển Warning Message từ Session sang Request (Flash)
-                    if (session.getAttribute("warningMessage") != null) {
-                        request.setAttribute("warningMessage", session.getAttribute("warningMessage"));
-                        session.removeAttribute("warningMessage"); 
-                    }
-                    
-                    // Trường hợp người dùng xóa keyword và tìm kiếm rỗng/Lần đầu vào
-                    if (keyword != null && keyword.trim().isEmpty()) {
-                        session.removeAttribute("savedCustomerList");
-                        session.removeAttribute("lastKeyword");
-                        session.removeAttribute("lastSearchType");
-                        request.setAttribute("warningMessage", "Vui lòng nhập từ khóa tìm kiếm.");
-                    }
-                }
-                
-                request.setAttribute("customerList", customerList);
-                request.setAttribute("pageTitle", "Quản lý Khách hàng");
-                request.setAttribute("contentPage", "customer_management_emp.jsp");
-                
-            } else if ("/employee/customer-history".equals(servletPath)) {
-                // ... (Logic xử lý history giữ nguyên) ...
-                
+            if ("/customer-list".equals(servletPath)) {
+                handleAdminSearch(request, response);
+            } 
+            else if ("/admin/customer-history".equals(servletPath)) {
                 String userIdStr = request.getParameter("userId");
                 if (userIdStr != null) {
                     int userId = Integer.parseInt(userIdStr);
-                    User customer = userDao.selectUserById(userId); 
-                    // Cần đảm bảo OrderDao.getOrdersByUserId không gây lỗi SQL.
-                    List<Order> orderHistory = orderDao.getOrdersByUserId(userId); 
-
-                    request.setAttribute("customer", customer);
-                    request.setAttribute("orderHistory", orderHistory);
+                    request.setAttribute("customer", userDao.selectUserById(userId));
+                    request.setAttribute("orderHistory", orderDao.getOrdersByUserId(userId));
+                    request.setAttribute("isHistoryView", true);
                 }
-                
-                request.setAttribute("pageTitle", "Lịch sử mua hàng");
-                request.setAttribute("contentPage", "customer_history_emp.jsp");
+                request.getRequestDispatcher("/customer.jsp").forward(request, response);
+            }
+            else if ("/employee/customers".equals(servletPath)) {
+                handleEmployeeSearchLogic(request, response, session);
+            } 
+            else if ("/employee/customer-history".equals(servletPath)) {
+                handleViewHistory(request, response, "/employee_layout.jsp");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/customer-list");
+        }
+    }
+
+    private void handleAdminSearch(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String searchType = request.getParameter("searchType");
+        String keyword = request.getParameter("keyword");
+        List<User> listCustomers;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            keyword = keyword.trim();
+            if ("phone".equals(searchType)) {
+                String cleanedKeyword = keyword.replaceAll("\\s+", ""); 
+                User customer = userDao.getUserByPhoneAndRole(cleanedKeyword, Role.customer);
+                listCustomers = (customer != null) ? List.of(customer) : List.of();
+            } else {
+                listCustomers = userDao.getCustomersByName(keyword);
             }
             
-            // LUÔN FORWARD KHI XỬ LÝ THÀNH CÔNG
-            request.getRequestDispatcher("/employee_layout.jsp").forward(request, response);
-            
-        } catch (NumberFormatException e) {
-            // ⭐ XỬ LÝ LỖI VÀ REDIRECT + RETURN
-            session.setAttribute("errorMessage", "ID Khách hàng không hợp lệ.");
-            response.sendRedirect(request.getContextPath() + "/employee/customers"); 
-            return; 
-        } catch (Exception e) {
-            // ⭐ XỬ LÝ LỖI CHUNG VÀ REDIRECT + RETURN
-            e.printStackTrace();
-            session.setAttribute("errorMessage", "Lỗi CSDL hoặc lỗi không xác định. Chi tiết lỗi: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/employee/customers");
-            return; 
+            // Thông báo nếu không tìm thấy kết quả
+            if (listCustomers.isEmpty()) {
+                request.setAttribute("warningMessage", "Không tìm thấy khách hàng nào phù hợp với từ khóa: " + keyword);
+                // Nạp lại toàn bộ danh sách để người dùng không thấy bảng trống
+                listCustomers = userDao.selectAllUsersByRole(Role.customer);
+            }
+        } else {
+            listCustomers = userDao.selectAllUsersByRole(Role.customer);
         }
+
+        request.setAttribute("listCustomers", listCustomers);
+        request.setAttribute("isHistoryView", false);
+        request.getRequestDispatcher("/customer.jsp").forward(request, response);
+    }
+
+    private void handleEmployeeSearchLogic(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
+        String searchType = request.getParameter("searchType");
+        String keyword = request.getParameter("keyword");
+        List<User> customerList;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            keyword = keyword.trim();
+            if ("phone".equals(searchType)) {
+                User c = userDao.getUserByPhoneAndRole(keyword, Role.customer);
+                customerList = (c != null) ? List.of(c) : List.of();
+            } else {
+                customerList = userDao.getCustomersByName(keyword);
+            }
+            if (customerList == null || customerList.isEmpty()) {
+                request.setAttribute("warningMessage", "Không tìm thấy khách hàng.");
+                customerList = userDao.selectAllUsersByRole(Role.customer);
+            }
+        } else {
+            customerList = userDao.selectAllUsersByRole(Role.customer);
+        }
+        request.setAttribute("customerList", customerList);
+        request.setAttribute("contentPage", "customer_management_emp.jsp");
+        request.getRequestDispatcher("/employee_layout.jsp").forward(request, response);
+    }
+
+    private void handleViewHistory(HttpServletRequest request, HttpServletResponse response, String target) 
+            throws ServletException, IOException {
+        String userIdStr = request.getParameter("userId");
+        if (userIdStr != null) {
+            int userId = Integer.parseInt(userIdStr);
+            request.setAttribute("customer", userDao.selectUserById(userId));
+            request.setAttribute("orderHistory", orderDao.getOrdersByUserId(userId));
+        }
+        if (target.contains("layout")) {
+            request.setAttribute("contentPage", "customer_history_emp.jsp");
+        }
+        request.getRequestDispatcher(target).forward(request, response);
     }
 }

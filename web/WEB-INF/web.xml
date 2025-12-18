@@ -278,8 +278,20 @@
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CustomerServlet</servlet-name>
+        <servlet-name>EmployeeCustomerController</servlet-name>
         <url-pattern>/customer-list</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EmployeeCustomerController</servlet-name>
+        <url-pattern>/admin/customer-history</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EmployeeCustomerController</servlet-name>
+        <url-pattern>/employee/customers</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EmployeeCustomerController</servlet-name>
+        <url-pattern>/employee/customer-history</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AddCustomerController</servlet-name>
