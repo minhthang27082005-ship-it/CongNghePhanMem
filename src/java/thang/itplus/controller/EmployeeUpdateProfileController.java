@@ -19,12 +19,12 @@ import thang.itplus.models.User.Role;
 public class EmployeeUpdateProfileController extends HttpServlet {
 
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
-    private final UserDao userDao = new UserDao(); 
+    private final UserDao userDao = new UserDao();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession();
         User currentUser = (User) session.getAttribute("user");
@@ -33,7 +33,7 @@ public class EmployeeUpdateProfileController extends HttpServlet {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Truy cập bị từ chối.");
             return;
         }
-        
+
         try {
             // Lấy dữ liệu từ form
             // Lưu ý: Tên tham số trong JSP là 'employee_id' và 'user_id' (cần kiểm tra lại JSP nếu có lỗi)
@@ -60,21 +60,24 @@ public class EmployeeUpdateProfileController extends HttpServlet {
             updatedEmployee.setEmail(email);
             updatedEmployee.setPhone(phone);
             updatedEmployee.setAddress(address);
-            
+
             User updatedUser = new User();
             updatedUser.setUser_id(userId);
             updatedUser.setName(name);
             updatedUser.setEmail(email);
             updatedUser.setPhone(phone);
             updatedUser.setAddress(address);
-            
+
             // 3. Thực hiện cập nhật Transaction (Employees và Users)
-            boolean success = employeeDAO.updateEmployeeProfile(updatedEmployee, updatedUser);
+            String newPassword = request.getParameter("newPassword");
+
+// 2. Cập nhật dòng gọi DAO (truyền thêm newPassword)
+            boolean success = employeeDAO.updateEmployeeProfile(updatedEmployee, updatedUser, newPassword);
 
             if (success) {
                 // 4. Cập nhật lại session 
                 User updatedCurrentUser = userDao.selectUserById(userId);
-                
+
                 if (updatedCurrentUser != null) {
                     session.setAttribute("user", updatedCurrentUser); // Đồng bộ Session
                     session.setAttribute("successMessage", "Cập nhật hồ sơ cá nhân thành công.");
@@ -82,7 +85,7 @@ public class EmployeeUpdateProfileController extends HttpServlet {
                     session.setAttribute("errorMessage", "Cập nhật thành công vào DB, nhưng không thể tải lại hồ sơ User.");
                 }
             }
-            
+
         } catch (NumberFormatException | SQLException e) {
             e.printStackTrace();
             session.setAttribute("errorMessage", "Lỗi hệ thống khi cập nhật: " + e.getMessage());

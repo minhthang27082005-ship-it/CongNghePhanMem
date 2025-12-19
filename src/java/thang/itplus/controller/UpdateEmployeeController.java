@@ -17,8 +17,8 @@ import thang.itplus.models.Employee;
 import thang.itplus.models.User;
 
 /**
- * Servlet để cập nhật thông tin nhân viên hiện có.
- * Xử lý dữ liệu từ form trên employee.jsp.
+ * Servlet để cập nhật thông tin nhân viên hiện có. Xử lý dữ liệu từ form trên
+ * employee.jsp.
  *
  * @author a4698
  */
@@ -32,12 +32,12 @@ public class UpdateEmployeeController extends HttpServlet {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
-    public void init() throws ServletException { 
+    public void init() throws ServletException {
         super.init(); // Thêm super.init()
         employeeDAO = new EmployeeDAO();
         userDAO = new CustomerDAO();
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -54,14 +54,14 @@ public class UpdateEmployeeController extends HttpServlet {
 
         try {
             // Lấy tham số
-            int employeeId = Integer.parseInt(request.getParameter("employee_id")); 
+            int employeeId = Integer.parseInt(request.getParameter("employee_id"));
             String name = request.getParameter("name");
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
             String address = request.getParameter("address");
             String position = request.getParameter("position");
-            
-            double salary = 0.0; 
+
+            double salary = 0.0;
             String salaryParam = request.getParameter("salary");
             if (salaryParam != null && !salaryParam.isEmpty()) {
                 salary = Double.parseDouble(salaryParam);
@@ -76,10 +76,10 @@ public class UpdateEmployeeController extends HttpServlet {
             String role = request.getParameter("role"); // Giá trị vai trò từ form
 
             // VALIDATION
-            if (name == null || name.isEmpty() ||
-                email == null || email.isEmpty() ||
-                role == null || role.isEmpty()) {
-                
+            if (name == null || name.isEmpty()
+                    || email == null || email.isEmpty()
+                    || role == null || role.isEmpty()) {
+
                 session.setAttribute("errorMessage", "Vui lòng điền đầy đủ các trường Tên, Email và Vai trò.");
                 response.sendRedirect(request.getContextPath() + "/employeelist");
                 return;
@@ -96,7 +96,7 @@ public class UpdateEmployeeController extends HttpServlet {
                     return;
                 }
             }
-            
+
             // Lấy nhân viên hiện có
             Employee existingEmployee = employeeDAO.selectEmployeeById(employeeId);
             if (existingEmployee == null) {
@@ -113,16 +113,16 @@ public class UpdateEmployeeController extends HttpServlet {
             // Cập nhật User
             User userToUpdate = userDAO.selectUserById(userId);
             if (userToUpdate == null) {
-                 session.setAttribute("errorMessage", "Không tìm thấy thông tin tài khoản người dùng liên quan.");
-                 response.sendRedirect(request.getContextPath() + "/employeelist");
-                 return;
+                session.setAttribute("errorMessage", "Không tìm thấy thông tin tài khoản người dùng liên quan.");
+                response.sendRedirect(request.getContextPath() + "/employeelist");
+                return;
             }
 
             userToUpdate.setName(name);
             userToUpdate.setEmail(email);
             userToUpdate.setPhone(phone);
             userToUpdate.setAddress(address);
-            
+
             // --- ĐOẠN CODE ĐÃ SỬA ĐỂ KHẮC PHỤC LỖI ENUM ---
             User.Role userRole = null;
             String roleInput = request.getParameter("role"); // Lấy giá trị: "Employee" hoặc "Admin"
@@ -146,16 +146,20 @@ public class UpdateEmployeeController extends HttpServlet {
             }
             userToUpdate.setRole(userRole);
             // ---------------------------------------------
-            
+
             // Giữ mật khẩu cũ
             // Cần selectUserById lần nữa vì userToUpdate ở trên có thể không chứa mật khẩu (tùy thuộc vào DAO)
-            userToUpdate.setPassword(userDAO.selectUserById(userId).getPassword()); 
-            
+            userToUpdate.setPassword(userDAO.selectUserById(userId).getPassword());
+
             // Gọi phương thức update User.
-            boolean userUpdated = userDAO.updateUser(userToUpdate); 
+            boolean userUpdated = userDAO.updateUser(userToUpdate);
 
             if (employeeUpdated && userUpdated) {
-                session.setAttribute("successMessage", "Cập nhật thông tin nhân viên và tài khoản người dùng thành công!");
+                // Nếu role mới là admin, hãy xóa họ khỏi bảng employees
+                if (userRole == User.Role.admin) {
+                    employeeDAO.deleteEmployee(employeeId);
+                }
+                session.setAttribute("successMessage", "Cập nhật thành công!");
             } else if (employeeUpdated) {
                 session.setAttribute("errorMessage", "Cập nhật thông tin nhân viên thành công, nhưng không thể cập nhật thông tin tài khoản người dùng.");
             } else {

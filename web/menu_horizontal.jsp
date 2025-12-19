@@ -1,3 +1,4 @@
+<%-- menu_horizontal.jsp --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -51,12 +52,20 @@
             .nav-link:hover { color: var(--wf-primary) !important; }
 
             .profile-circle {
-                width: 38px; height: 38px;
+                width: 38px;
+                height: 38px;
                 background-color: var(--wf-primary);
                 color: white;
                 display: flex; justify-content: center; align-items: center;
                 border-radius: 50%; font-weight: 600; text-transform: uppercase;
                 box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+                transition: transform 0.2s ease;
+            }
+            
+            /* Hiệu ứng khi di chuột vào vòng tròn tên */
+            .profile-link:hover .profile-circle {
+                transform: scale(1.1);
+                background-color: #0b5ed7;
             }
 
             .auth-btn {
@@ -71,7 +80,8 @@
             .btn-outline-danger.auth-btn:hover { background-color: var(--wf-danger); color: white; }
 
             .icon-btn {
-                width: 40px; height: 40px;
+                width: 40px;
+                height: 40px;
                 display: flex; align-items: center; justify-content: center;
                 background-color: var(--wf-primary); color: white;
                 border-radius: 50%; cursor: pointer; text-decoration: none;
@@ -79,16 +89,19 @@
             }
 
             .cart-count {
-                position: absolute; top: -3px; right: -3px;
+                position: absolute;
+                top: -3px; right: -3px;
                 background: var(--wf-danger); color: white;
                 border-radius: 50%; font-size: 10px;
                 width: 18px; height: 18px;
-                display: flex; align-items: center; justify-content: center;
+                display: flex; align-items: center;
+                justify-content: center;
                 border: 2px solid white;
             }
 
             .search-bar {
-                margin-top: 15px; display: none;
+                margin-top: 15px;
+                display: none;
                 background: white; padding: 15px;
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             }
@@ -150,9 +163,13 @@
                             </c:when>
                             <c:otherwise>
                                 <div class="user-profile d-flex align-items-center">
-                                    <div class="profile-circle" title="${sessionScope.user.name}">
-                                        <c:out value="${fn:substring(sessionScope.user.getName(), 0, 1)}" />
-                                    </div>
+                                    <%-- THAY ĐỔI: Thêm thẻ <a> bọc quanh vòng tròn tên để dẫn đến trang Profile --%>
+                                    <a href="${pageContext.request.contextPath}/profile" class="profile-link text-decoration-none">
+                                        <div class="profile-circle" title="Hồ sơ cá nhân: ${sessionScope.user.name}">
+                                            <c:out value="${fn:substring(sessionScope.user.getName(), 0, 1)}" />
+                                        </div>
+                                    </a>
+                                    
                                     <a href="javascript:void(0)" class="btn btn-outline-danger auth-btn ms-2" onclick="confirmLogout()">Logout</a>
                                     
                                     <c:if test="${sessionScope.user.role == 'admin'}">

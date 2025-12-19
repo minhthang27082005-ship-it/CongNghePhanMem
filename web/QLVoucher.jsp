@@ -74,19 +74,19 @@
     </head>
     <body>
         <%-- SIDEBAR MENU --%>
-        <div class="menu" id="menu">
+        <div class="menu">
             <div class="text-white text-center py-3 mb-3">
                 <h4>Admin Panel</h4>
             </div>
             <div class="list-group">
                 <a href="${pageContext.request.contextPath}/admin" class="list-group-item list-group-item-action">
-                    <i class="bi bi-speedometer2"></i> Tổng quan hệ thống
+                    <i class="bi bi-speedometer2"></i> Quản lý tổng quan hệ thống
                 </a>
                 <a href="${pageContext.request.contextPath}/admin/profile" class="list-group-item list-group-item-action">
-                    <i class="bi bi-person-fill"></i> Hồ sơ cá nhân
+                    <i class="bi bi-person-fill"></i> Quản lý hồ sơ cá nhân
                 </a>
                 <a href="${pageContext.request.contextPath}/listproducts" class="list-group-item list-group-item-action">
-                    <i class="bi bi-box-seam-fill"></i> Quản lý Sản Phẩm
+                    <i class="bi bi-box-seam-fill"></i> Quản lý Kho
                 </a>
                 <a href="${pageContext.request.contextPath}/customer-list" class="list-group-item list-group-item-action">
                     <i class="bi bi-people-fill"></i> Quản lý Khách Hàng
@@ -100,7 +100,7 @@
                 <a href="${pageContext.request.contextPath}/supplierlist" class="list-group-item list-group-item-action">
                     <i class="bi bi-truck"></i> Quản lý Nhà Cung Cấp
                 </a>
-                <a href="${pageContext.request.contextPath}/voucherslist" class="list-group-item list-group-item-action active">
+                <a href="${pageContext.request.contextPath}/voucherslist" class="list-group-item list-group-item-action ">
                     <i class="bi bi-gift-fill"></i> Quản lý Mã Giảm Giá
                 </a>
                 <a href="${pageContext.request.contextPath}/logout" class="list-group-item list-group-item-action">

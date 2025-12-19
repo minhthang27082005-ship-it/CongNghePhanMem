@@ -216,6 +216,18 @@
         <servlet-name>AdminProfileController</servlet-name>
         <servlet-class>thang.itplus.controller.AdminProfileController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CustomerProfileController</servlet-name>
+        <servlet-class>thang.itplus.controller.CustomerProfileController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateCustomerProfileController</servlet-name>
+        <servlet-class>thang.itplus.controller.UpdateCustomerProfileController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InventoryManagerController</servlet-name>
+        <servlet-class>thang.itplus.controller.InventoryManagerController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/</url-pattern>
@@ -432,5 +444,17 @@
     <servlet-mapping>
         <servlet-name>AdminProfileController</servlet-name>
         <url-pattern>/admin/profile</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CustomerProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateCustomerProfileController</servlet-name>
+        <url-pattern>/update-customer-profile</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryManagerController</servlet-name>
+        <url-pattern>/quanlykho</url-pattern>
     </servlet-mapping>
 </web-app>

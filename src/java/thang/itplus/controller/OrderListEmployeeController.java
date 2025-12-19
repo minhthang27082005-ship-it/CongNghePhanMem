@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import thang.itplus.dao.OrderDao;
 import thang.itplus.models.Order;
+import thang.itplus.models.Payment;
 import thang.itplus.models.User;
 import thang.itplus.models.User.Role;
 
@@ -22,42 +23,37 @@ public class OrderListEmployeeController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         HttpSession session = request.getSession();
         User currentUser = (User) session.getAttribute("user");
-        
-        // 1. Kiểm tra phân quyền
+
         if (currentUser == null || (currentUser.getRole() != Role.EMPLOYEE && currentUser.getRole() != Role.admin)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang này.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Không có quyền.");
             return;
         }
 
+        String orderIdSearch = request.getParameter("orderIdSearch");
         try {
-            // 2. Lấy danh sách tất cả đơn hàng
-            List<Order> orderList = orderDao.getAllOrders();
+            // 1. Xử lý tìm kiếm chi tiết đơn hàng nếu có ID
+            if (orderIdSearch != null && !orderIdSearch.isEmpty()) {
+                int orderId = Integer.parseInt(orderIdSearch);
+                Order searchOrder = orderDao.getOrderById(orderId);
+                Payment payment = orderDao.getPaymentByOrderId(orderId);
 
-            // 3. Đặt vào Request Scope
+                request.setAttribute("selectedOrder", searchOrder);
+                request.setAttribute("payment", payment);
+            }
+
+            // 2. Luôn lấy danh sách tất cả đơn hàng để hiển thị bên dưới
+            List<Order> orderList = orderDao.getAllOrders();
             request.setAttribute("orderList", orderList);
-            
-            // ⭐ SỬA ĐỔI: Sử dụng Layout
-            request.setAttribute("pageTitle", "Danh Sách Đơn Hàng");
+
+            request.setAttribute("pageTitle", "Quản Lý Đơn Hàng & Thanh Toán");
             request.setAttribute("contentPage", "order_list_employee.jsp");
-            
-            // 4. Chuyển tiếp đến trang LAYOUT
             request.getRequestDispatcher("/employee_layout.jsp").forward(request, response);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("errorMessage", "Lỗi khi tải danh sách đơn hàng: " + e.getMessage());
-            
-            // ⭐ Sửa: Chuyển hướng về Profile mặc định
-            response.sendRedirect(request.getContextPath() + "/employee/profile"); 
+            session.setAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/employee/orders");
         }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        doGet(request, response);
     }
 }

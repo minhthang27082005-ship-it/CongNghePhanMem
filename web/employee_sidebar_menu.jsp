@@ -61,31 +61,20 @@
 
     <%-- ⭐ HỒ SƠ CÁ NHÂN (Trang Tổng Quan Mặc Định) --%>
     <a href="${pageContext.request.contextPath}/employee/profile" class="${currentPath eq '/employee/profile' || currentPath eq '/update-profile' || currentPath eq '/change-password' ? 'active' : ''}">
-        <i class="fas fa-user-cog"></i> Hồ Sơ Cá Nhân
+        <i class="fas fa-user-cog"></i> Quản lý Hồ Sơ Cá Nhân
     </a>
     <a href="${pageContext.request.contextPath}/employee/customers" class="${currentPath eq '/employee/customers' || currentPath eq '/employee/customer-history' ? 'active' : ''}">
         <i class="fas fa-user-friends"></i> Quản lý Khách hàng
     </a>
 
-    <a href="${pageContext.request.contextPath}/employee/products" class="${currentPath eq '/employee/products' ? 'active' : ''}">
-        <i class="fas fa-list"></i> Kiểm Tra Tồn Kho
+    <a href="${pageContext.request.contextPath}/quanlykho" 
+       class="${currentPath eq '/quanlykho' ? 'active' : ''}">
+        <i class="fas fa-list"></i> Quản lý Kho
     </a>
 
-    <a href="${pageContext.request.contextPath}/nhapkho" class="${currentPath eq '/nhapkho' ? 'active' : ''}">
-        <i class="fas fa-box-open"></i> Nhập Kho
-    </a>
-    <a href="${pageContext.request.contextPath}/xuatkho" class="${currentPath eq '/xuatkho' ? 'active' : ''}">
-        <i class="fas fa-truck-loading"></i> Xuất Kho
-    </a>
-    <a href="${pageContext.request.contextPath}/lichsukho" class="${currentPath eq '/lichsukho' ? 'active' : ''}">
-        <i class="fas fa-history"></i> Lịch Sử Kho
-    </a>
 
     <a href="${pageContext.request.contextPath}/employee/orders" class="${currentPath eq '/employee/orders' ? 'active' : ''}">
-        <i class="fas fa-clipboard-list"></i> Danh Sách Đơn Hàng
-    </a>
-    <a href="${pageContext.request.contextPath}/payment_process" class="${currentPath eq '/payment_process' ? 'active' : ''}">
-        <i class="fas fa-money-check-alt"></i> Xác Nhận & Hóa Đơn
+        <i class="fas fa-clipboard-list"></i> Quản lý Đơn Hàng
     </a>
 
     <%-- ⭐ ĐÃ XÓA LIÊN KẾT 'Trang chủ' gây lỗi 404 hoặc không cần thiết --%>

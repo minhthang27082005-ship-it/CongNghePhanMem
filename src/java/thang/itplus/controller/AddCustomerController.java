@@ -55,9 +55,9 @@ public class AddCustomerController extends HttpServlet {
                 }
             }
 
-            if (name == null || name.trim().isEmpty() ||
-                email == null || email.trim().isEmpty() ||
-                password == null || password.trim().isEmpty()) {
+            if (name == null || name.trim().isEmpty()
+                    || email == null || email.trim().isEmpty()
+                    || password == null || password.trim().isEmpty()) {
                 errorMessage = "Tên, Email và Mật khẩu là các trường bắt buộc.";
             }
 
@@ -73,13 +73,13 @@ public class AddCustomerController extends HttpServlet {
                     e.printStackTrace();
                 }
             }
-            
+
             if (errorMessage == null) {
                 User newUser = new User(id, name.trim(), email.trim(), password.trim(),
-                                      (phone != null ? phone.trim() : null),
-                                      (address != null ? address.trim() : null),
-                                      role);
-                
+                        (phone != null ? phone.trim() : null),
+                        (address != null ? address.trim() : null),
+                        role);
+
                 customerDAO.insertUser(newUser);
                 successMessage = "Thêm khách hàng '" + name + "' thành công!";
             }
@@ -101,7 +101,14 @@ public class AddCustomerController extends HttpServlet {
             } else if (errorMessage != null) {
                 session.setAttribute("errorMessage", errorMessage);
             }
-            response.sendRedirect(request.getContextPath() + "/customer-list");
+            User currentUser = (User) session.getAttribute("user");
+            if (currentUser != null && currentUser.getRole() == User.Role.EMPLOYEE) {
+                // Nếu là nhân viên, quay về trang quản lý của nhân viên
+                response.sendRedirect(request.getContextPath() + "/employee/customers");
+            } else {
+                // Nếu là admin, quay về trang mặc định của admin
+                response.sendRedirect(request.getContextPath() + "/customer-list");
+            }
         }
     }
 
@@ -110,7 +117,7 @@ public class AddCustomerController extends HttpServlet {
             throws ServletException, IOException {
         response.sendRedirect(request.getContextPath() + "/customer-list");
     }
-    
+
     @Override
     public String getServletInfo() {
         return "Servlet for adding new customer information.";

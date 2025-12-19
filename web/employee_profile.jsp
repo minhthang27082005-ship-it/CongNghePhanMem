@@ -1,4 +1,4 @@
-<%-- employee_profile.jsp (ĐÃ RÚT GỌN VÀ THIẾT KẾ LẠI) --%>
+<%-- employee_profile.jsp --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -10,11 +10,9 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         border-radius: 8px;
     }
-    /* Style cho chữ thông tin */
     .profile-card p {
-        font-size: 1.2rem; /* ⭐ TĂNG CỠ CHỮ THÔNG TIN */
+        font-size: 1.2rem;
     }
-    /* ⭐ ĐƯỜNG PHÂN CÁCH DỌC */
     .profile-info-divider {
         border-left: 1px solid #ddd;
         padding-left: 30px;
@@ -22,7 +20,7 @@
     }
     .profile-card h5 {
         color: #007bff;
-        font-size: 1.5rem; /* Cỡ chữ tiêu đề nhóm thông tin */
+        font-size: 1.5rem;
     }
     .profile-card h2 {
         font-size: 2rem;
@@ -34,7 +32,6 @@
     
     <div class="profile-card bg-white rounded">
         
-        <%-- Hiển thị thông báo (từ Session) --%>
         <c:if test="${not empty sessionScope.successMessage}">
             <div class="alert alert-success">${sessionScope.successMessage}</div>
             <c:remove var="successMessage" scope="session"/>
@@ -88,7 +85,6 @@
         </c:if>
     </div>
 
-    <%-- Modal Chỉnh Sửa Hồ Sơ Cá Nhân (Cần đặt ngay trong trang nội dung) --%>
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -98,7 +94,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <%-- Hidden Input chứa ID nhân viên và User ID --%>
                         <input type="hidden" name="employee_id" value="${emp.employee_id}">
                         <input type="hidden" name="user_id" value="${emp.user_id}">
 
@@ -119,6 +114,18 @@
                             <textarea class="form-control" id="inputAddress" name="address">${emp.address}</textarea>
                         </div>
 
+                        <hr>
+                        <h6 class="text-primary fw-bold">Thay đổi mật khẩu (Để trống nếu không đổi)</h6>
+                        <div class="mb-3">
+                            <label for="inputPassword" class="form-label">Mật khẩu mới:</label>
+                            <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Nhập mật khẩu mới">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu:</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                            <small id="passwordHelp" class="text-danger d-none">Mật khẩu xác nhận không khớp!</small>
+                        </div>
+
                         <div class="alert alert-info mt-3">
                             Thông tin vị trí, lương và trạng thái do Quản trị viên quản lý.
                         </div>
@@ -134,4 +141,18 @@
     </div>
 </div>
 
-<%-- KHÔNG BAO GỒM THẺ SCRIPT Ở ĐÂY NỮA, HÃY ĐỂ TRONG LAYOUT CHÍNH --%>
+<script>
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const password = document.getElementById('inputPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const helpText = document.getElementById('passwordHelp');
+
+        if (password !== "" && password !== confirm) {
+            e.preventDefault();
+            helpText.classList.remove('d-none');
+            alert("Mật khẩu xác nhận không khớp!");
+        } else {
+            helpText.classList.add('d-none');
+        }
+    });
+</script>
